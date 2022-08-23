@@ -1,1 +1,1 @@
-# webPackCleanBuild
+Program helper for desk game Eldritch Horror.
