@@ -1,8 +1,4 @@
 import './styles/index.scss';
-import greenCards from './assets/MythicCards/green/index';
-import brownCards from './assets/MythicCards/brown/index';
-import blueCards from './assets/MythicCards/blue/index';
-import difficulties from './data/difficulties';
 import ancients from './data/ancients';
 import greenCardsData from './data/mythicCards/green/index';
 import brownCardsData from './data/mythicCards/brown/index';
@@ -41,14 +37,12 @@ const tracker = () => {
     document.getElementById('stat8').textContent = stats[7];
     document.getElementById('stat9').textContent = stats[8];
 }
-
 //-------------------------------------------------------------------------
 
 //выкладывает по одной карте из колоды -------------------------------------
 const deck = document.querySelector('.right__deck');
 deck.addEventListener('click', () => { takeNextCard() });
 const takeNextCard = () => {
-    console.log(cardDeck)
     if (cardDeck[0].length > 0) { //проверка наличия карт в массиве
         changeCard(cardDeck[0].pop()); //меняет кущую карту на экране и удаляет из массива
         tracker(); //обновляет текущее состояние колоды
@@ -76,7 +70,8 @@ const changeCard = (img) => {
 //--------------------------------------------------------------------------
 
 //выбор древнего --------------------------------------------------------
-let gameAncients; //хранит выбор древнего
+let ancientNumber; //хранит выбор древнего
+
 const azathothCard = document.getElementById('a1');
 const cthulhuCard = document.getElementById('a2');
 const iogSothothCard = document.getElementById('a3');
@@ -89,22 +84,22 @@ const removeActivAncients = () => { //убирает класс актиив с�
     shubNiggurathCard.classList.remove('activ');
 }
 azathothCard.addEventListener('click', (e) => {
-    gameAncients = 'azathoth';
+    ancientNumber = 0;
     removeActivAncients();
     azathothCard.classList.add('activ'); //добавляет класс актив выбраной карте
 })
 cthulhuCard.addEventListener('click', (e) => {
-    gameAncients = 'cthulhu';
+    ancientNumber = 1;
     removeActivAncients();
     cthulhuCard.classList.add('activ');
 })
 iogSothothCard.addEventListener('click', (e) => {
-    gameAncients = 'iogSothoth';
+    ancientNumber = 2;
     removeActivAncients();
     iogSothothCard.classList.add('activ');
 })
 shubNiggurathCard.addEventListener('click', (e) => {
-    gameAncients = 'shubNiggurath';
+    ancientNumber = 3;
     removeActivAncients();
     shubNiggurathCard.classList.add('activ');
 })
@@ -113,6 +108,7 @@ shubNiggurathCard.addEventListener('click', (e) => {
 
 // выбор уровня сложности --------------------------------------------------
 let gameDifficult; //хранит выбор сложности
+
 const d1 = document.getElementById('d1');
 const d2 = document.getElementById('d2');
 const d3 = document.getElementById('d3');
@@ -153,56 +149,180 @@ d5.addEventListener('click', (e) => {
 })
 //--------------------------------------------------------------------------
 
-// Замешивает колоду----------------------------------------------------------
-const mixBtn = document.querySelector('.right__btnMix');
-mixBtn.addEventListener('click', () => {
-    mixDeck(); //замешывает колоду
-    tracker(); //обновляет текущее состояние колоды
-    removeActivDif(); //убирает активный класс с кнопок
-    removeActivAncients(); //убирает класс актив с карт
-    gameDifficult = ''; //очищает переменные
-    gameAncients = '';
-    deck.style.background = `url(${cardBack})`; //добавляет картинку полной калоды карт
-    document.querySelector('.right__card').style.background = `none`; //убирает картинку карты с предыдущей игры
-    console.log(cardDeck)
-})
 
+// выбирает карты подходящие по уровню сложности -----------------------------
+let priorDeck = [[], [], []]; //главный промежуточный массив
+let secondDeck = [[], [], []]; //дополнительный промежуточный массив
 
-const mixDeck = () => {
-    console.log(gameAncients, gameDifficult);
-
-    if (gameAncients === 'azathoth') { // первый древний / легкий уровень
-        //первая стадия
-        for (let i = 0; i < ancients[0].firstStage.greenCards; i++) {
-            cardDeck[0].push(greenCardsData[0]); //добавляем карту в массив
+let commonDeck = () => {
+    //для очень низкого уровня сложности
+    if (gameDifficult === 'd1') {
+        for (let el of greenCardsData) {
+            if (el.difficulty === 'easy') priorDeck[0].push(el);
+            if (el.difficulty === 'normal') secondDeck[0].push(el);
         }
-        for (let i = 0; i < ancients[0].firstStage.brownCards; i++) {
-            cardDeck[0].push(brownCardsData[0]);
+        for (let el of brownCardsData) {
+            if (el.difficulty === 'easy') priorDeck[1].push(el);
+            if (el.difficulty === 'normal') secondDeck[1].push(el);
         }
-        for (let i = 0; i < ancients[0].firstStage.blueCards; i++) {
-            cardDeck[0].push(blueCardsData[0]);
+        for (let el of blueCardsData) {
+            if (el.difficulty === 'easy') priorDeck[2].push(el);
+            if (el.difficulty === 'normal') secondDeck[2].push(el);
         }
-        //вторая стадия
-        for (let i = 0; i < ancients[0].secondStage.greenCards; i++) {
-            cardDeck[1].push(greenCardsData[0]);
+    }
+    //для низкого уровня сложности
+    if (gameDifficult === 'd2') {
+        for (let el of greenCardsData) {
+            if (el.difficulty === 'easy' || el.difficulty === 'normal') priorDeck[0].push(el);
         }
-        for (let i = 0; i < ancients[0].secondStage.brownCards; i++) {
-            cardDeck[1].push(brownCardsData[0]);
+        for (let el of brownCardsData) {
+            if (el.difficulty === 'easy' || el.difficulty === 'normal') priorDeck[1].push(el);
         }
-        for (let i = 0; i < ancients[0].secondStage.blueCards; i++) {
-            cardDeck[1].push(blueCardsData[0]);
+        for (let el of blueCardsData) {
+            if (el.difficulty === 'easy' || el.difficulty === 'normal') priorDeck[2].push(el);
         }
-        //третья стадия
-        for (let i = 0; i < ancients[0].thirdStage.greenCards; i++) {
-            cardDeck[2].push(greenCardsData[0]);
+    }
+    //для средний уровня сложности
+    if (gameDifficult === 'd3') {
+        for (let el of greenCardsData) {
+            priorDeck[0].push(el);
         }
-        for (let i = 0; i < ancients[0].thirdStage.brownCards; i++) {
-            cardDeck[2].push(brownCardsData[0]);
+        for (let el of brownCardsData) {
+            priorDeck[1].push(el);
         }
-        for (let i = 0; i < ancients[0].thirdStage.blueCards; i++) {
-            cardDeck[2].push(blueCardsData[0]);
+        for (let el of blueCardsData) {
+            priorDeck[2].push(el);
+        }
+    }
+    //для высокого уровня сложности
+    if (gameDifficult === 'd4') {
+        for (let el of greenCardsData) {
+            if (el.difficulty === 'hard' || el.difficulty === 'normal') priorDeck[0].push(el);
+        }
+        for (let el of brownCardsData) {
+            if (el.difficulty === 'hard' || el.difficulty === 'normal') priorDeck[1].push(el);
+        }
+        for (let el of blueCardsData) {
+            if (el.difficulty === 'hard' || el.difficulty === 'normal') priorDeck[2].push(el);
+        }
+    }
+    //для очень высокого уровня сложности
+    if (gameDifficult === 'd5') {
+        for (let el of greenCardsData) {
+            if (el.difficulty === 'hard') priorDeck[0].push(el);
+            if (el.difficulty === 'normal') secondDeck[0].push(el);
+        }
+        for (let el of brownCardsData) {
+            if (el.difficulty === 'hard') priorDeck[1].push(el);
+            if (el.difficulty === 'normal') secondDeck[1].push(el);
+        }
+        for (let el of blueCardsData) {
+            if (el.difficulty === 'hard') priorDeck[2].push(el);
+            if (el.difficulty === 'normal') secondDeck[2].push(el);
         }
     }
 
+    //проверка каких карт нехватает в главном промежуточном массиве
+    let minusGreen = priorDeck[0].length - (ancients[ancientNumber].firstStage.greenCards + ancients[ancientNumber].secondStage.greenCards + ancients[ancientNumber].thirdStage.greenCards);
+    if (minusGreen < 0) {
+        for (let i = 0; i < Math.abs(minusGreen); i++) {
+            let rndNum = Math.floor(Math.random() * secondDeck[0].length); //случайное значение из дополнительного массива
+            priorDeck[0].push(secondDeck[0][rndNum]); //добавляет елемент в главный массив
+            secondDeck[0].splice(rndNum, 1); //удаляет елемент из дополнительного массива
+        }
+    }
+    let minusBrown = priorDeck[1].length - (ancients[ancientNumber].firstStage.brownCards + ancients[ancientNumber].secondStage.brownCards + ancients[ancientNumber].thirdStage.brownCards);
+    if (minusBrown < 0) {
+        for (let i = 0; i < Math.abs(minusBrown); i++) {
+            let rndNum = Math.floor(Math.random() * secondDeck[1].length); //случайное значение из дополнительного массива
+            priorDeck[1].push(secondDeck[1][rndNum]); //добавляет елемент в главный массив
+            secondDeck[1].splice(rndNum, 1); //удаляет елемент из дополнительного массива
+        }
+    }
+    let minusBlue = priorDeck[2].length - (ancients[ancientNumber].firstStage.blueCards + ancients[ancientNumber].secondStage.blueCards + ancients[ancientNumber].thirdStage.blueCards);
+    if (minusBlue < 0) {
+        for (let i = 0; i < Math.abs(minusBlue); i++) {
+            let rndNum = Math.floor(Math.random() * secondDeck[2].length); //случайное значение из дополнительного массива
+            priorDeck[2].push(secondDeck[2][rndNum]); //добавляет елемент в главный массив
+            secondDeck[2].splice(rndNum, 1); //удаляет елемент из дополнительного массива
+        }
+    }
 }
-//--------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+// Замешивает колоду----------------------------------------------------------
+const mixBtn = document.querySelector('.right__btnMix');
+mixBtn.addEventListener('click', () => {
+    if (gameDifficult === undefined || ancientNumber === undefined) { //срабатывает если не выбрана сложность или древний
+        //очистка всех переменных
+        priorDeck = [[], [], []];
+        secondDeck = [[], [], []];
+        gameDifficult = undefined;
+        ancientNumber = undefined;
+        cardDeck = [[], [], []]; //очистка колоды с предыдущего замеса
+        tracker(); //обновляет текущее состояние колоды
+        removeActivDif(); //убирает активный класс с кнопок
+        removeActivAncients(); //убирает класс актив с карт
+        deck.style.background = `none`; //добавляет картинку полной калоды карт
+        document.querySelector('.right__card').style.background = `none`; //убирает картинку карты с предыдущей игры
+    } else {
+        cardDeck = [[], [], []]; //очистка колоды с предыдущего замеса
+        mixDeck(); //замешывает колоду
+        tracker(); //обновляет текущее состояние колоды
+        removeActivDif(); //убирает активный класс с кнопок
+        removeActivAncients(); //убирает класс актив с карт
+        deck.style.background = `url(${cardBack})`; //добавляет картинку полной калоды карт
+        document.querySelector('.right__card').style.background = `none`; //убирает картинку карты с предыдущей игры
+        //очистка переменных
+        priorDeck = [[], [], []];
+        secondDeck = [[], [], []];
+        gameDifficult = undefined;
+        ancientNumber = undefined;
+    }
+})
+
+const mixDeck = () => {
+    commonDeck(); //создает промежуточный массив карт подходящие по уровню сложности
+
+    //перемешывает карты в промежуточном массиве
+    priorDeck[0].sort(() => Math.random() - 0.5);
+    priorDeck[1].sort(() => Math.random() - 0.5);
+    priorDeck[2].sort(() => Math.random() - 0.5);
+
+    //заполняет основной массив картами из промежуточного массива
+    //первая стадия
+    for (let i = 0; i < ancients[ancientNumber].firstStage.greenCards; i++) {
+        cardDeck[0].push(priorDeck[0].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    for (let i = 0; i < ancients[ancientNumber].firstStage.brownCards; i++) {
+        cardDeck[0].push(priorDeck[1].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    for (let i = 0; i < ancients[ancientNumber].firstStage.blueCards; i++) {
+        cardDeck[0].push(priorDeck[2].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    //вторая стадия
+    for (let i = 0; i < ancients[ancientNumber].secondStage.greenCards; i++) {
+        cardDeck[1].push(priorDeck[0].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    for (let i = 0; i < ancients[ancientNumber].secondStage.brownCards; i++) {
+        cardDeck[1].push(priorDeck[1].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    for (let i = 0; i < ancients[ancientNumber].secondStage.blueCards; i++) {
+        cardDeck[1].push(priorDeck[2].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    //третья стадия
+    for (let i = 0; i < ancients[ancientNumber].thirdStage.greenCards; i++) {
+        cardDeck[2].push(priorDeck[0].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    for (let i = 0; i < ancients[ancientNumber].thirdStage.brownCards; i++) {
+        cardDeck[2].push(priorDeck[1].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    for (let i = 0; i < ancients[ancientNumber].thirdStage.blueCards; i++) {
+        cardDeck[2].push(priorDeck[2].pop()); //забирает карту из промежуточного массива в итоговый
+    }
+    //перемешывает карты в основном массиве
+    cardDeck[0].sort(() => Math.random() - 0.5);
+    cardDeck[1].sort(() => Math.random() - 0.5);
+    cardDeck[2].sort(() => Math.random() - 0.5);
+}
+//-----------------------------------------------------------------------------
